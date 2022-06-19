@@ -53,15 +53,21 @@ def get_rec():
     # Ratings defaults to True, returns arr in desc order. Changing to 0 will return values in desc.
     ratings = request.args.get('ratings', 1)
 
-    # Query user preference key from database. -1 means username was not found
-    preference_key = dbFetch.fetch_user_key(username)
-    if preference_key == -1 :
+    ##CHAIN OF RESPONSABILITY
+    user = dbFetch.dbUser(username)
+
+    # Validate de existence of a user
+    if user.valid == -1 :
         return "USER DOES NOT EXIST", 200
-    
+
+    # Query user preference key from database.
+    preference_key = user.fetch_user_key()
+
     # Reac CSV and recover recomendations based on preference key and ratings
     listaEntries = csvRead.read_csv_movies(ratings,preference_key,sizeOf)
     
     # Create list of objects
+    ##Solid 3 LSP: by making an entry an object we can change only the type of object we want
     entry = entries.EntriesMaker()
     payload = entry.makeJson(listaEntries,typeOf)
     
